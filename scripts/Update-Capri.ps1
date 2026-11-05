@@ -11,7 +11,7 @@ try { $lock = [IO.File]::Open((Join-Path $work 'update.lock'), 'OpenOrCreate', '
 function Run-Git {
     param([string[]]$Arguments)
     $ErrorActionPreference = 'Continue'
-    $result = & git -C $root @Arguments 2>&1
+    $result = & $settings.gitPath -C $root @Arguments 2>&1
     if ($LASTEXITCODE -ne 0) { throw ($result -join "`n") }
     return $result
 }

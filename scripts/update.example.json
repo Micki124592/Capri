@@ -2,5 +2,6 @@
   "appPath": "C:/path/to/runtime/Capri.exe",
   "bridgePath": "C:/path/to/local-chat-mcp",
   "nodePath": "C:/path/to/node.exe",
-  "windowsMetadata": "C:/path/to/Windows.Foundation.UniversalApiContract.winmd"
+  "windowsMetadata": "C:/path/to/Windows.Foundation.UniversalApiContract.winmd",
+  "gitPath": "C:/Program Files/Git/cmd/git.exe"
 }
