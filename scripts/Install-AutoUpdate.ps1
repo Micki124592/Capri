@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 $runner = Join-Path $PSScriptRoot 'Run-Update.ps1'
 if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'update.local.json'))) { throw 'Najpierw przygotuj update.local.json.' }
 $powerShellExe = Join-Path $env:WINDIR 'System32/WindowsPowerShell/v1.0/powershell.exe'
