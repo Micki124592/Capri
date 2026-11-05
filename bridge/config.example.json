@@ -1,0 +1,8 @@
+{
+  "threadId": "SET_LOCAL_CODEX_THREAD_ID",
+  "codexPath": "codex",
+  "projectName": "CapriCorn",
+  "cwd": "C:/path/to/CapriCorn",
+  "model": "gpt-6-luna",
+  "reasoningEffort": "low"
+}
