@@ -34,7 +34,8 @@ function Stop-CapriProcesses {
 }
 function Start-CapriProcesses {
     $gatewayFile = Join-Path $settings.bridgePath 'gateway.mjs'
-    Start-Process -FilePath $settings.nodePath -ArgumentList ('"' + $gatewayFile + '"') -WorkingDirectory $settings.bridgePath -WindowStyle Hidden -RedirectStandardOutput (Join-Path $settings.bridgePath 'gateway.log') -RedirectStandardError (Join-Path $settings.bridgePath 'gateway-error.log') | Out-Null
+    $newGateway = Start-Process -FilePath $settings.nodePath -ArgumentList ('"' + $gatewayFile + '"') -WorkingDirectory $settings.bridgePath -WindowStyle Hidden -RedirectStandardOutput (Join-Path $settings.bridgePath 'gateway.log') -RedirectStandardError (Join-Path $settings.bridgePath 'gateway-error.log') -PassThru
+    $newGateway.Id | Set-Content -LiteralPath (Join-Path $settings.bridgePath 'gateway.pid')
     Start-Process -FilePath $settings.appPath -ArgumentList '--capricorn','--chaos' -WorkingDirectory (Split-Path -Parent $settings.appPath) -WindowStyle Hidden | Out-Null
 }
 try {
