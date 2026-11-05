@@ -1,7 +1,7 @@
 import http from 'node:http';
 import {randomUUID} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {callTool,disconnect,subscribeNotifications,validImage,interruptTurn} from './server.mjs';
+import {callTool,disconnect,subscribeNotifications,validImage,interruptTurn,rotateContext} from './server.mjs';
 import {loreContext} from './lore.mjs';
 
 export function capriPrompt(body){
@@ -51,7 +51,7 @@ export function toolReply(answer,tools){
   if(!calls.length&&!value.content?.trim())throw new Error('Pusta odpowiedź narzędzi.');
   return {content:value.content,...(calls.length?{tool_calls:calls}:{})};
 }
-export function createGateway(invoke=callTool,{timeoutMs=100000,pollMs=500,subscribe=subscribeNotifications,interrupt=interruptTurn}={}){
+export function createGateway(invoke=callTool,{timeoutMs=100000,pollMs=500,subscribe=subscribeNotifications,interrupt=interruptTurn,resetContext=rotateContext}={}){
   let busy=false;
   let active=null;
   const preempt=()=>{
@@ -101,21 +101,31 @@ export function createGateway(invoke=callTool,{timeoutMs=100000,pollMs=500,subsc
         }
       };
       unsubscribe=subscribe(notification);
-      started=await invoke('chat_send',{message,...(imageUrls.length?{imageUrls}:{})});
+      let recovered=false;
+      const contextError=e=>/context window|ran out of room|remote compact|context.{0,30}exceed/i.test(e?.message??'');
+      const send=()=>invoke('chat_send',{message,...(imageUrls.length?{imageUrls}:{})});
+      try{started=await send();}catch(e){if(!contextError(e))throw e;await resetContext();recovered=true;started=await send();}
       active.turnId=started.turn.id;
       if(queue.some(job=>!job.background))preempt();
       if(body.stream){
         streaming=true;res.writeHead(200,{'Content-Type':'text/event-stream; charset=utf-8','Cache-Control':'no-cache','Connection':'keep-alive'});res.flushHeaders();chunk({role:'assistant'});
       }
       for(const m of waiting)notification(m);
-      const deadline=Date.now()+timeoutMs;
+      let deadline=Date.now()+timeoutMs;
       while(Date.now()<deadline){
         await new Promise(r=>setTimeout(r,pollMs));
         let history;
         try{history=await invoke('chat_history',{limit:20});}catch(e){if(/empty|no rollout/.test(e.message))continue;throw e;}
         const turn=history.data.find(t=>t.id===started.turn.id);
         if(!turn)continue;
-        if(['failed','interrupted'].includes(turn.status))throw new Error(turn.error?.message??`Codex: ${turn.status}`);
+        if(['failed','interrupted'].includes(turn.status)){
+          const error=new Error(turn.error?.message??`Codex: ${turn.status}`);
+          if(!recovered&&!emitted&&contextError(error)){
+            await resetContext();recovered=true;started=await send();active.turnId=started.turn.id;
+            deadline=Date.now()+timeoutMs;continue;
+          }
+          throw error;
+        }
         if(turn.status!=='completed')continue;
         const messages=turn.items.filter(i=>i.type==='agentMessage');
         const finals=messages.filter(i=>i.phase==='final_answer');

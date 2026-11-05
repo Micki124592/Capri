@@ -1,5 +1,7 @@
 # Lokalny MCP — CapriCorn
 
+Wątki techniczne są odświeżane co 12 żądań (lokalne maxThreadTurns), aby ciągłe reakcje w tle nie zapełniały kontekstu. Capri przekazuje bieżącą historię rozmowy w żądaniu, więc pozostaje ona dostępna po zmianie wątku. Przy błędzie przepełnienia adapter jednorazowo tworzy nowy wątek i ponawia żądanie, o ile nie rozpoczął zwracania odpowiedzi. Poprzedni wątek nie jest kasowany.
+
 Adapter przekazuje teraz definicje narzędzi Capri (`tools`) do Codex i zwraca wybrane akcje jako standardowe `tool_calls`, również w SSE. Narzędzia wykonuje Capri według własnych uprawnień; adapter sam nie uruchamia tych działań. Obsługiwane są także wiadomości z wynikami narzędzi. Test rzeczywisty: „Włącz jakiś hit Night City na Spotify” zwrócił play_music z samodzielnie wybranym utworem. Test potwierdza wybór akcji, nie odtwarzanie dźwięku. Odpowiedzi z narzędziami są buforowane do końca generowania, aby nie czytać JSON na głos.
 
 Model backendu: `gpt-6-luna`, poziom rozumowania: `low` (Lekki). Ustawienia są zapisane w config.json i przekazywane przy każdej turze. W Capri pozostaje alias `codex-capricorn`.

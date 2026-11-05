@@ -4,6 +4,19 @@ import {createGateway,capriPrompt,normalizeMessages,toolReply} from './gateway.m
 import {loreContext} from './lore.mjs';
 import {readFileSync} from 'node:fs';
 
+test('context overflow creates one fresh thread and retries the original request',async()=>{
+  let sends=0,resets=0;const prompts=[];
+  const server=createGateway(async(name,args)=>{
+    if(name==='chat_send'){prompts.push(args.message);return {threadId:'thread',turn:{id:'t'+(++sends)}};}
+    return {data:[sends===1?{id:'t1',status:'failed',error:{message:'Codex ran out of room in the model context window'}}:{id:'t2',status:'completed',items:[{type:'agentMessage',phase:'final_answer',text:'Działa'}]}]};
+  },{pollMs:1,resetContext:async()=>{resets++;}});
+  await new Promise(r=>server.listen(0,'127.0.0.1',r));
+  try{
+    const response=await fetch(`http://127.0.0.1:${server.address().port}/v1/chat/completions`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({model:'codex-capricorn',messages:[{role:'user',content:'Sprawdź połączenie'}]})});
+    assert.equal(response.status,200);assert.equal((await response.json()).choices[0].message.content,'Działa');assert.equal(resets,1);assert.equal(sends,2);assert.equal(prompts[0],prompts[1]);
+  }finally{await new Promise(r=>server.close(r));}
+});
+
 test('Capri tools are advertised, validated, and tool results remain associated with calls',()=>{
   const tools=[{type:'function',function:{name:'play_music',parameters:{required:['song']}}}];
   const body={model:'codex-capricorn',tools,messages:[{role:'user',content:'Włącz jakiś hit Night City'}]};

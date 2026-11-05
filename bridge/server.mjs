@@ -11,11 +11,12 @@ export async function interruptTurn(turnId){await connect();return rpc('turn/int
 export function validImage(url){return typeof url==='string'&&url.length<=12000000&&/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(url);}
 function stop(){ child?.kill(); for(const p of pending.values()){clearTimeout(p.timer);p.reject(new Error('Połączenie z Codex zamknięte.'));}pending.clear();ready=undefined;child=undefined;loadedThread=undefined; }
 export const disconnect=stop;
+export async function rotateContext(){return setupProjectThread(config);}
 export async function setupProjectThread({projectId,projectName,cwd}){
   await connect();
   const {thread}=await rpc('thread/start',{cwd,sandbox:'workspace-write',approvalPolicy:'on-request',model:config.model,config:{model_reasoning_effort:config.reasoningEffort}});
   loadedThread=thread;
-  Object.assign(config,{threadId:thread.id,projectId,projectName,cwd});
+  Object.assign(config,{previousThreadId:config.threadId,threadId:thread.id,projectId,projectName,cwd,turnCount:0});
   writeFileSync(new URL('./config.json',import.meta.url),JSON.stringify(config,null,2)+'\n');
   return thread;
 }
@@ -58,6 +59,7 @@ export async function callTool(name,args={}){
   if(name==='chat_history' && ((args.limit!==undefined&&(!Number.isInteger(args.limit)||args.limit<1||args.limit>100))||(args.cursor!==undefined&&typeof args.cursor!=='string')))throw new Error('Nieprawidłowy limit lub cursor.');
   if(name==='chat_send' && sending)throw new Error('Trwa już wysyłanie wiadomości.');
   await connect();
+  if(name==='chat_send'&&(config.turnCount??0)>=(config.maxThreadTurns??12))await rotateContext();
   const threadId=config.threadId;
   if(name==='chat_status')return rpc('thread/read',{threadId});
   if(name==='chat_history')return rpc('thread/turns/list',{threadId,limit:args.limit??10,itemsView:'full',...(args.cursor?{cursor:args.cursor}:{})});
@@ -70,6 +72,8 @@ export async function callTool(name,args={}){
     if(thread.status?.type==='active')throw new Error('Czat jest zajęty. Poczekaj na zakończenie bieżącej tury.');
     const result=await rpc('turn/start',{threadId,model:config.model,effort:config.reasoningEffort,input:[{type:'text',text:args.message},...(args.imageUrls??[]).map(url=>({type:'image',url}))]});
     loadedThread.status={type:'active'};
+    config.turnCount=(config.turnCount??0)+1;
+    writeFileSync(new URL('./config.json',import.meta.url),JSON.stringify(config,null,2)+'\n');
     return {threadId,turn:result.turn,next:'Odczytuj chat_history, aż ta tura otrzyma status completed, failed albo interrupted.'};
   }finally{sending=false;}
 }
