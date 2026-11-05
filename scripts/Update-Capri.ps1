@@ -9,7 +9,7 @@ New-Item -ItemType Directory -Path $work -Force | Out-Null
 $lock = $null
 try { $lock = [IO.File]::Open((Join-Path $work 'update.lock'), 'OpenOrCreate', 'ReadWrite', 'None') } catch { exit 0 }
 function Run-Git {
-    param([Parameter(ValueFromRemainingArguments=$true)][string[]]$Arguments)
+    param([string[]]$Arguments)
     $ErrorActionPreference = 'Continue'
     $result = & git -C $root @Arguments 2>&1
     if ($LASTEXITCODE -ne 0) { throw ($result -join "`n") }
@@ -39,12 +39,12 @@ function Start-CapriProcesses {
     Start-Process -FilePath $settings.appPath -ArgumentList '--capricorn','--chaos' -WorkingDirectory (Split-Path -Parent $settings.appPath) -WindowStyle Hidden | Out-Null
 }
 try {
-    $dirty = Run-Git @('status','--porcelain','--untracked-files=normal')
+    $dirty = Run-Git -Arguments @('status','--porcelain','--untracked-files=normal')
     if ($dirty) { throw 'Aktualizacja wstrzymana: lokalne zmiany. Zapisz je przez commit/push przed aktualizacją.' }
-    $branch = Run-Git @('branch','--show-current')
+    $branch = Run-Git -Arguments @('branch','--show-current')
     if ($branch -ne 'main') { throw 'Aktualizator wymaga gałęzi main.' }
-    $null = Run-Git @('fetch','origin','main')
-    $target = (Run-Git @('rev-parse','origin/main')).Trim()
+    $null = Run-Git -Arguments @('fetch','origin','main')
+    $target = (Run-Git -Arguments @('rev-parse','origin/main')).Trim()
     $stateFile = Join-Path $work 'deployed.json'
     $state = if (Test-Path -LiteralPath $stateFile) { Get-Content -LiteralPath $stateFile -Raw | ConvertFrom-Json } else { $null }
     if (-not $Force -and $state.commit -eq $target) { exit 0 }
@@ -54,7 +54,7 @@ try {
         $health = Invoke-RestMethod 'http://127.0.0.1:8787/health' -TimeoutSec 2
         if (-not $Force -and ($health.busy -or $health.queued -gt 0)) { Write-Output 'Capri rozmawia — aktualizacja w następnej minucie.'; exit 0 }
     } catch { }
-    $null = Run-Git @('merge','--ff-only','origin/main')
+    $null = Run-Git -Arguments @('merge','--ff-only','origin/main')
     # Do not run a newly fetched updater until its next scheduled invocation.
     Push-Location (Join-Path $root 'bridge')
     try {
@@ -64,7 +64,7 @@ try {
     $stage = Join-Path $work ('build-' + $target)
     & (Join-Path $root 'capri-desktop/ci/build-windows.ps1') -OutputDirectory $stage -WindowsMetadata $settings.windowsMetadata
     if (-not (Test-Path -LiteralPath (Join-Path $stage 'Capri.exe'))) { throw 'Brak skompilowanej aplikacji.' }
-    $bridgeFiles = @(Run-Git @('ls-files','bridge')) | Where-Object { $_ -ne 'bridge/config.example.json' }
+    $bridgeFiles = @(Run-Git -Arguments @('ls-files','bridge')) | Where-Object { $_ -ne 'bridge/config.example.json' }
     $backup = Join-Path $work 'previous'
     New-Item -ItemType Directory -Path $backup -Force | Out-Null
     Copy-Item -LiteralPath $settings.appPath -Destination (Join-Path $backup 'Capri.exe') -Force
