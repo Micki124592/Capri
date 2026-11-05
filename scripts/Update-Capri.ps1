@@ -10,6 +10,7 @@ $lock = $null
 try { $lock = [IO.File]::Open((Join-Path $work 'update.lock'), 'OpenOrCreate', 'ReadWrite', 'None') } catch { exit 0 }
 function Run-Git {
     param([Parameter(ValueFromRemainingArguments=$true)][string[]]$Arguments)
+    $ErrorActionPreference = 'Continue'
     $result = & git -C $root @Arguments 2>&1
     if ($LASTEXITCODE -ne 0) { throw ($result -join "`n") }
     return $result
@@ -50,7 +51,7 @@ try {
     # Wait while Capri is receiving a response, instead of interrupting a conversation.
     try {
         $health = Invoke-RestMethod 'http://127.0.0.1:8787/health' -TimeoutSec 2
-        if ($health.busy -or $health.queued -gt 0) { Write-Output 'Capri rozmawia — aktualizacja w następnej minucie.'; exit 0 }
+        if (-not $Force -and ($health.busy -or $health.queued -gt 0)) { Write-Output 'Capri rozmawia — aktualizacja w następnej minucie.'; exit 0 }
     } catch { }
     $null = Run-Git @('merge','--ff-only','origin/main')
     # Do not run a newly fetched updater until its next scheduled invocation.

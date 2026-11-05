@@ -1,0 +1,28 @@
+name: Capri checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  bridge:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Configure test-only local settings
+        shell: pwsh
+        run: Copy-Item bridge/config.example.json bridge/config.json
+      - name: Test bridge
+        working-directory: bridge
+        run: node --test test.mjs gateway.test.mjs
+  desktop:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Windows app
+        shell: pwsh
+        run: ./capri-desktop/ci/build-windows.ps1
