@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "test": "node --test test.mjs gateway.test.mjs antigravity.test.mjs"
+    "test": "node --test test.mjs gateway.test.mjs antigravity.test.mjs mobile-gateway.test.mjs"
   },
   "engines": {
     "node": ">=20"

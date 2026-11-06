@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'">
+<title>Capri — neural link</title><link rel="stylesheet" href="app.css"></head>
+<body>
+<header><div class="brand"><span class="brand-mark">C</span><div>CAPRI<small>PROJECT CAPRICORN / MOBILE</small></div></div><button id="settings-open" class="icon" aria-label="Ustawienia">⚙</button></header>
+<main id="main">
+<section id="stage" aria-label="Animowany awatar Capri">
+ <div class="stage-grid"></div><div class="orbit orbit-a"></div><div class="orbit orbit-b"></div>
+ <div class="coordinates">NC / 2077<br>PERSONAL LINK</div><div class="stage-corner top"></div><div class="stage-corner bottom"></div>
+ <div id="avatar-wrap"><canvas id="sprite"></canvas><img id="fallback" src="art/capri-full.png" alt="Capri" hidden></div>
+ <div id="particles"></div><div class="stage-tag"><i></i> KONSTRUKT AKTYWNY <span>01</span></div>
+ <button id="spark" aria-label="Ożyw awatara">✧</button>
+</section>
+<div class="status-row"><span id="state-dot"></span><span id="status" role="status">Hej, choom. Jestem na łączach.</span><span id="elapsed"></span></div>
+<section id="messages" aria-label="Rozmowa" aria-live="polite"><div id="welcome"><span class="eyebrow">TWOJA CYFROWA TOWARZYSZKA</span><h1>No, co dziś<br>kombinujemy?</h1><p>Muzyka, pogaduchy, trochę kontrolowanego chaosu.</p><div class="suggestions"><button data-say="Odtwórz SAMURAI Never Fade Away">♫ Never Fade Away</button><button data-say="Cześć, Capri!">✦ Pogadajmy</button></div></div></section>
+<footer><div class="composer"><button id="mic" aria-label="Powiedz polecenie">●</button><textarea id="input" rows="1" placeholder="Napisz do Capri…" maxlength="6000" aria-label="Wiadomość"></textarea><button id="send" aria-label="Wyślij">↗</button></div><div class="footer-meta"><span id="connection">GEMINI / NIEPOŁĄCZONA</span><button id="stop">■ Stop</button></div></footer>
+</main>
+<section id="settings" hidden>
+ <div class="settings-heading"><div><span class="eyebrow">TWÓJ NEURAL LINK</span><h2>Ustawienia</h2></div><button id="settings-close" class="icon" aria-label="Zamknij ustawienia">×</button></div>
+ <p id="settings-feedback" class="hint" role="status">Zapisz adres serwera i klucz, a następnie przetestuj połączenie i głos.</p>
+ <div class="card"><span class="eyebrow">01 / MÓZG NA KOMPUTERZE</span><label>Adres serwera Tailscale<input id="ollama" type="url" placeholder="https://home.tail6f0542.ts.net:8443" autocomplete="off"></label><p class="hint">Włącz Tailscale na telefonie i komputerze. Komputer musi być włączony. Wpisz adres HTTPS z instrukcji, nie localhost.</p><label>Klucz dostępu telefonu<input id="gatewayKey" type="password" autocomplete="off" placeholder="Klucz z pliku konfiguracji telefonu"></label><p class="hint">Puste pole zachowa zapisany klucz. Jest szyfrowany w Android Keystore.</p><label>Model<input id="model" value="codex-capricorn" autocomplete="off"></label><button id="test" class="secondary">Sprawdź połączenie</button></div>
+ <div class="card"><span class="eyebrow">02 / GŁOS CAPRI · FISH AUDIO</span><label class="check"><input type="checkbox" id="voice" checked>Mów odpowiedzi na głos</label><label>Klucz API Fish<input id="apiKey" type="password" placeholder="Wpisz klucz na telefonie" autocomplete="off"></label><p id="key-state" class="hint">Klucz zapisywany jest przez Android Keystore. Puste pole zachowuje zapisany klucz.</p><label>Voice ID<input id="voiceId" value="499318f2459e4dd8a3ef701086a0e117" autocomplete="off"></label><label>Model Fish<select id="fishModel"><option value="s2.1-pro-free">S2.1 Pro Free</option><option value="s2.1-pro">S2.1 Pro</option><option value="s2-pro">S2 Pro</option></select></label><p class="hint">Do Fish trafia tekst wypowiadanej odpowiedzi. Do Gemini przez komputer — Twoja wiadomość i ostatni kontekst rozmowy. To osobne połączenia.</p><div class="button-row"><button id="voice-test" class="secondary">Posłuchaj Capri</button><button id="key-clear" class="text-button">Usuń klucz</button></div></div>
+ <div class="card"><span class="eyebrow">03 / DZIAŁANIA NA TELEFONIE</span><p class="hint">Polecenia muzyczne działają bez LLM. Capri potwierdza odtwarzanie po sprawdzeniu właściwego tytułu.</p><div class="permission"><div><b>YouTube Music: przyciski</b><small id="access-state">Wyłączone</small></div><button id="accessibility" class="secondary">Włącz</button></div><div class="permission"><div><b>Stan odtwarzania</b><small id="notification-state">Niepołączony</small></div><button id="notifications" class="secondary">Włącz</button></div><div class="permission"><div><b>Shizuku</b><small id="shizuku-state">Niepołączone</small></div><button id="shizuku" class="secondary">Połącz</button></div></div>
+ <div class="card"><span class="eyebrow">04 / AWATAR NA PULPICIE</span><p class="hint">Przesuwaj za pasek CAPRI. Kropka otwiera mikrofon, × ukrywa awatara. Mikrofon włącza się wyłącznie po Twoim dotknięciu.</p><button id="overlay" class="secondary">Pokaż nad aplikacjami</button></div>
+ <button id="save" class="primary">Zapisz ustawienia ↗</button><div class="button-row bottom-actions"><button id="clear" class="text-button">Wyczyść rozmowę</button><button id="licenses" class="text-button">Autorstwo i licencje</button></div><p class="legal">Nieoficjalna, niekomercyjna adaptacja dla własnego użytku. Animacje: mochiiwuff / capri-desktop. Grafiki postaci mają odrębnych właścicieli praw.</p>
+</section>
+<script type="module" src="app.js"></script></body></html>

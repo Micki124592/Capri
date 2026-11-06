@@ -58,7 +58,7 @@ try {
     # Do not run a newly fetched updater until its next scheduled invocation.
     Push-Location (Join-Path $root 'bridge')
     try {
-        & $settings.nodePath --test test.mjs gateway.test.mjs antigravity.test.mjs
+        & $settings.nodePath --test test.mjs gateway.test.mjs antigravity.test.mjs mobile-gateway.test.mjs
         if ($LASTEXITCODE -ne 0) { throw 'Testy mostu MCP nie przeszły. Działająca wersja nie została zmieniona.' }
     } finally { Pop-Location }
     $stage = Join-Path $work ('build-' + $target)

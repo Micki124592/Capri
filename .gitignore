@@ -3,6 +3,11 @@
 .updates/
 scripts/update.local.json
 bridge/config.json
+bridge/mobile.local.json
+mobile/local.properties
+mobile/.gradle/
+mobile/artifacts/
+mobile/build/
 bridge/mcp-client.json
 bridge/protocol/
 **/node_modules/

@@ -1,0 +1,3 @@
+/* Avatar animation uses the upstream WebGL sprite renderer and exposure sheets.
+ * Copyright (c) 2026 mochiiwuff. See UPSTREAM-LICENSE.txt. */
+body[data-state=listening] .orbit-a{border-color:#83ffc088}body[data-state=speaking] .orbit-a{border-color:#ff497a88;box-shadow:0 0 35px #ff497a18}body[data-state=error] #stage{filter:hue-rotate(-12deg)}

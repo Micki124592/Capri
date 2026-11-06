@@ -1,0 +1,7 @@
+Source: https://github.com/mochiiwuff/capri-desktop
+Commit: cb33e87dfaee79cec8b4b0f737ca89e07b87ba4b
+Required Notice: Copyright (c) 2026 mochiiwuff (https://github.com/mochiiwuff/capri-desktop)
+Included code: src/renderer/js/sprite.js, src/renderer/js/acting.js (unmodified).
+Included images: assets/capri (artwork has separate rights; not covered by source license).
+Adaptation: Android UI, touch-based avatar controller, Ollama and Fish clients, music tools.
+See LICENSE-UPSTREAM.txt for the complete upstream code license and notices.
