@@ -1,3 +1,7 @@
+# Aktualizacja 0.2.1 — sama postać bez panelu
+
+Aktualna instrukcja: [MOBILE-0.2.1.md](MOBILE-0.2.1.md).
+
 # Capri Mobile 0.2.0 — S22 Ultra + Tailscale + Gemini
 
 Aktualna wersja jest opisana w [MOBILE-0.2.md](MOBILE-0.2.md). APK do samodzielnej instalacji znajduje się lokalnie w artifacts/Capri-Mobile-0.2.0-S22Ultra.apk. Token telefonu jest prywatny i nie jest publikowany w repozytorium ani w APK.
