@@ -1,5 +1,13 @@
 # Lokalny MCP — CapriCorn
 
+## Backend Gemini przez Antigravity CLI
+
+W config.json ustaw `backend: "antigravity-cli"`, `antigravityPath` na lokalny agy.exe, `antigravityModel: "gemini-3.8-flash-low"`, `antigravityEffort: "low"` i opcjonalny folder tymczasowy `antigravityWorkspace`. Logowanie wykonuje się raz w interaktywnym Antigravity CLI. Klucze API nie są potrzebne; obowiązują limity konta Google/Antigravity.
+
+W Capri pozostaje endpoint 8787 i alias `codex-capricorn`. `/health` podaje rzeczywisty backend i engineModel. Powrót do Codex: ustaw `backend: "codex"` i zrestartuj serwer; zachowane pola model/threadId dotyczą Codex.
+
+Antigravity jest uruchamiane bez okna konsoli, w trybie plan, bez automatycznego udzielania zgód. Wywołania play_music i pozostałych narzędzi zwraca do Capri, która wykonuje je według swoich ustawień. Każde żądanie jest osobnym wywołaniem z kontekstem dostarczonym przez Capri, bez narastającego wspólnego wątku CLI. Obrazy są przekazywane przez pliki tymczasowe i usuwane po zakończeniu procesu. Odpowiedź SSE jest w tym wariancie zwracana po zakończeniu generowania, aby komentarze techniczne nie trafiały do mowy. Historia techniczna MCP obejmuje ostatnie 50 żądań bieżącego procesu; paginacja starszych wyników nie jest obsługiwana.
+
 Wątki techniczne są odświeżane co 12 żądań (lokalne maxThreadTurns), aby ciągłe reakcje w tle nie zapełniały kontekstu. Capri przekazuje bieżącą historię rozmowy w żądaniu, więc pozostaje ona dostępna po zmianie wątku. Przy błędzie przepełnienia adapter jednorazowo tworzy nowy wątek i ponawia żądanie, o ile nie rozpoczął zwracania odpowiedzi. Poprzedni wątek nie jest kasowany.
 
 Adapter przekazuje teraz definicje narzędzi Capri (`tools`) do Codex i zwraca wybrane akcje jako standardowe `tool_calls`, również w SSE. Narzędzia wykonuje Capri według własnych uprawnień; adapter sam nie uruchamia tych działań. Obsługiwane są także wiadomości z wynikami narzędzi. Test rzeczywisty: „Włącz jakiś hit Night City na Spotify” zwrócił play_music z samodzielnie wybranym utworem. Test potwierdza wybór akcji, nie odtwarzanie dźwięku. Odpowiedzi z narzędziami są buforowane do końca generowania, aby nie czytać JSON na głos.

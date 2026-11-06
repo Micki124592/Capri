@@ -2,16 +2,19 @@ import {spawn} from 'node:child_process';
 import {createInterface} from 'node:readline';
 import {readFileSync,writeFileSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
+import {AntigravityBackend} from './antigravity.mjs';
 
 const config=JSON.parse(readFileSync(new URL('./config.json',import.meta.url)));
+const alternative=config.backend==='antigravity-cli'?new AntigravityBackend(config):null;
+export const backendInfo={backend:alternative?'antigravity-cli':'codex',engineModel:alternative?config.antigravityModel:config.model};
 const pending=new Map(); let sequence=0, child, ready, sending=false, loadedThread;
 const listeners=new Set();
-export function subscribeNotifications(listener){listeners.add(listener);return ()=>listeners.delete(listener);}
-export async function interruptTurn(turnId){await connect();return rpc('turn/interrupt',{threadId:config.threadId,turnId});}
+export function subscribeNotifications(listener){if(alternative)return alternative.subscribe(listener);listeners.add(listener);return ()=>listeners.delete(listener);}
+export async function interruptTurn(turnId){if(alternative)return alternative.interrupt(turnId);await connect();return rpc('turn/interrupt',{threadId:config.threadId,turnId});}
 export function validImage(url){return typeof url==='string'&&url.length<=12000000&&/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/.test(url);}
-function stop(){ child?.kill(); for(const p of pending.values()){clearTimeout(p.timer);p.reject(new Error('Połączenie z Codex zamknięte.'));}pending.clear();ready=undefined;child=undefined;loadedThread=undefined; }
+function stop(){ alternative?.stop();child?.kill(); for(const p of pending.values()){clearTimeout(p.timer);p.reject(new Error('Połączenie z Codex zamknięte.'));}pending.clear();ready=undefined;child=undefined;loadedThread=undefined; }
 export const disconnect=stop;
-export async function rotateContext(){return setupProjectThread(config);}
+export async function rotateContext(){return alternative?alternative.reset():setupProjectThread(config);}
 export async function setupProjectThread({projectId,projectName,cwd}){
   await connect();
   const {thread}=await rpc('thread/start',{cwd,sandbox:'workspace-write',approvalPolicy:'on-request',model:config.model,config:{model_reasoning_effort:config.reasoningEffort}});
@@ -57,6 +60,7 @@ export async function callTool(name,args={}){
   if(name==='chat_send' && (typeof args.message!=='string'||!args.message.trim()||args.message.length>100000))throw new Error('Wiadomość musi mieć 1–100000 znaków.');
   if(name==='chat_send' && args.imageUrls!==undefined && (!Array.isArray(args.imageUrls)||args.imageUrls.length>4||args.imageUrls.some(url=>!validImage(url))))throw new Error('Nieprawidłowe obrazy: wymagane maksymalnie 4 obrazy PNG, JPEG lub WebP jako data URL.');
   if(name==='chat_history' && ((args.limit!==undefined&&(!Number.isInteger(args.limit)||args.limit<1||args.limit>100))||(args.cursor!==undefined&&typeof args.cursor!=='string')))throw new Error('Nieprawidłowy limit lub cursor.');
+  if(alternative)return alternative.callTool(name,args);
   if(name==='chat_send' && sending)throw new Error('Trwa już wysyłanie wiadomości.');
   await connect();
   if(name==='chat_send'&&(config.turnCount??0)>=(config.maxThreadTurns??12))await rotateContext();

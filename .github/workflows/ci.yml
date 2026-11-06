@@ -18,7 +18,7 @@ jobs:
         run: Copy-Item bridge/config.example.json bridge/config.json
       - name: Test bridge
         working-directory: bridge
-        run: node --test test.mjs gateway.test.mjs
+        run: node --test test.mjs gateway.test.mjs antigravity.test.mjs
   desktop:
     runs-on: windows-latest
     steps:

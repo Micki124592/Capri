@@ -1,8 +1,8 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 try {
     $health = Invoke-RestMethod -Uri 'http://127.0.0.1:8787/health' -TimeoutSec 2
-    if ($health.backend -eq 'codex' -and $health.model -eq 'codex-capricorn') {
-        Write-Host 'Serwer Capri → Codex już działa: http://127.0.0.1:8787/v1/chat/completions'
+    if (@('codex','antigravity-cli') -contains $health.backend -and $health.model -eq 'codex-capricorn') {
+        Write-Host 'Serwer Capri → AI już działa: http://127.0.0.1:8787/v1/chat/completions'
         exit 0
     }
     throw 'Port 8787 jest zajęty przez inną usługę.'
@@ -19,7 +19,7 @@ for ($attempt = 0; $attempt -lt 20; $attempt++) {
     Start-Sleep -Milliseconds 250
     try {
         $health = Invoke-RestMethod -Uri 'http://127.0.0.1:8787/health' -TimeoutSec 1
-        if ($health.backend -eq 'codex') {
+        if (@('codex','antigravity-cli') -contains $health.backend) {
             Write-Host 'Gotowe. Endpoint: http://127.0.0.1:8787/v1/chat/completions | Model: codex-capricorn | Klucz: pusty'
             exit 0
         }

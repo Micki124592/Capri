@@ -1,1 +1,13 @@
-{"name":"local-chat-mcp","version":"1.0.0","private":true,"type":"module","scripts":{"start":"node server.mjs","test":"node --test test.mjs"},"engines":{"node":">=20"}}
+{
+  "name": "local-chat-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test test.mjs gateway.test.mjs antigravity.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

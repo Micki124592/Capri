@@ -26,7 +26,7 @@ function Stop-CapriProcesses {
     $gatewayFile = Join-Path $settings.bridgePath 'gateway.mjs'
     Get-CimInstance Win32_Process -Filter "Name = 'node.exe'" | Where-Object { $_.CommandLine.Contains($gatewayFile) -or $_.CommandLine.Contains($gatewayFile.Replace('\','/')) } | ForEach-Object {
         $gatewayInstance = $_
-        $children = Get-CimInstance Win32_Process -Filter "ParentProcessId = $($gatewayInstance.ProcessId)" | Where-Object { $_.Name -eq 'codex.exe' -and $_.CommandLine -like '*app-server --stdio*' }
+        $children = Get-CimInstance Win32_Process -Filter "ParentProcessId = $($gatewayInstance.ProcessId)" | Where-Object { @('codex.exe','agy.exe') -contains $_.Name -and ($_.CommandLine -like '*app-server --stdio*' -or $_.Name -eq 'agy.exe') }
         Stop-Process -Id $gatewayInstance.ProcessId -ErrorAction SilentlyContinue
         foreach ($childInstance in $children) { Stop-Process -Id $childInstance.ProcessId -ErrorAction SilentlyContinue }
     }
@@ -58,7 +58,7 @@ try {
     # Do not run a newly fetched updater until its next scheduled invocation.
     Push-Location (Join-Path $root 'bridge')
     try {
-        & $settings.nodePath --test test.mjs gateway.test.mjs
+        & $settings.nodePath --test test.mjs gateway.test.mjs antigravity.test.mjs
         if ($LASTEXITCODE -ne 0) { throw 'Testy mostu MCP nie przeszły. Działająca wersja nie została zmieniona.' }
     } finally { Pop-Location }
     $stage = Join-Path $work ('build-' + $target)
@@ -90,7 +90,7 @@ try {
         Start-CapriProcesses
         Start-Sleep -Seconds 3
         $health = Invoke-RestMethod 'http://127.0.0.1:8787/health' -TimeoutSec 5
-        if ($health.backend -ne 'codex') { throw 'Most MCP nie odpowiada po aktualizacji.' }
+        if (@('codex','antigravity-cli') -notcontains $health.backend) { throw 'Most MCP nie odpowiada po aktualizacji.' }
         $appStarted = Get-CimInstance Win32_Process -Filter "Name = 'Capri.exe'" | Where-Object ExecutablePath -eq $settings.appPath
         if (-not $appStarted) { throw 'Capri nie uruchomiła się po aktualizacji.' }
     } catch {
